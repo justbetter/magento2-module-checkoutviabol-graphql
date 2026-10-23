@@ -1,0 +1,35 @@
+{
+  "name": "justbetter/magento2-module-checkoutviabol-graphql",
+  "description": "GraphQL support for the bol.checkout Magento 2 module, for headless frontends",
+  "keywords": [
+    "PHP",
+    "Magento",
+    "Magento 2",
+    "GraphQL",
+    "bol",
+    "bol.checkout",
+    "Rapidez"
+  ],
+  "type": "magento2-module",
+  "license": "MIT",
+  "require": {
+    "php": ">=8.2",
+    "magento/framework": "*",
+    "magento/module-sales": "*",
+    "magento/module-sales-graph-ql": "*",
+    "magento/module-store": "*",
+    "bol/magento2-module-checkoutviabol": "^1.5"
+  },
+  "authors": [
+    {
+      "name": "Jade Geels",
+      "email": "jade@justbetter.nl",
+      "homepage": "https://justbetter.nl",
+      "role": "Developer"
+    }
+  ],
+  "autoload": {
+    "psr-4": { "JustBetter\\CheckoutViaBolGraphQl\\": "" },
+    "files": [ "registration.php" ]
+  }
+}

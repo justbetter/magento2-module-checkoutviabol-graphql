@@ -1,0 +1,63 @@
+<?php
+
+namespace JustBetter\CheckoutViaBolGraphQl\Model\Resolver;
+
+use Bol\CheckoutViaBol\Api\CvbOrderRepositoryInterface;
+use Bol\CheckoutViaBol\Api\Data\CvbOrderInterfaceFactory;
+use Bol\CheckoutViaBol\Exception\CvbApiException;
+use Bol\CheckoutViaBol\Model\Ui\ConfigProvider;
+use Bol\CheckoutViaBol\Service\CvbService;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\GraphQl\Config\Element\Field;
+use Magento\Framework\GraphQl\Query\ResolverInterface;
+use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Model\Order;
+
+class CvbRedirectUrl implements ResolverInterface
+{
+    public function __construct(
+        private readonly CvbService $cvbService,
+        private readonly CvbOrderRepositoryInterface $cvbOrderRepository,
+        private readonly CvbOrderInterfaceFactory $cvbOrderFactory,
+    ) {
+    }
+
+    public function resolve(Field $field, $context, ResolveInfo $info, ?array $value = null, ?array $args = null): ?string
+    {
+        $order = $value['model'] ?? null;
+
+        if (!$order instanceof OrderInterface
+            || $order->getPayment()?->getMethod() !== ConfigProvider::CODE
+            || $order->getState() !== Order::STATE_PENDING_PAYMENT
+            || $this->hasCvbOrder($order)
+        ) {
+            return null;
+        }
+
+        try {
+            $cvbSessionId = $this->cvbService->createCvbSessionFromOrder($order)['id'];
+
+            $cvbOrder = $this->cvbOrderFactory->create();
+            $cvbOrder->setOrderId((int)$order->getEntityId());
+            $cvbOrder->setCvbSessionId($cvbSessionId);
+            $cvbOrder->setIsFillInSession(false);
+            $this->cvbOrderRepository->save($cvbOrder);
+
+            return $this->cvbService->confirmSession($cvbSessionId, $order);
+        } catch (CvbApiException) {
+            return null;
+        }
+    }
+
+    private function hasCvbOrder(OrderInterface $order): bool
+    {
+        try {
+            $this->cvbOrderRepository->getByMagentoOrderId((int)$order->getEntityId());
+
+            return true;
+        } catch (NoSuchEntityException) {
+            return false;
+        }
+    }
+}

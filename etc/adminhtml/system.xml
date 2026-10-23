@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="payment">
+            <group id="cvb_graphql" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
+                <label>Bol.checkout GraphQL</label>
+                <field id="success_path" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" translate="label comment">
+                    <label>Success path</label>
+                    <comment>Path on your frontend to redirect to after a successful payment, e.g. checkout/success. Guest orders get a token query parameter to load the order with guestOrderByToken. Leave empty to use the default Magento success page.</comment>
+                </field>
+                <field id="cancel_path" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" translate="label comment">
+                    <label>Cancel path</label>
+                    <comment>Path on your frontend to redirect to when the payment is cancelled or fails. Leave empty to use the default bol.checkout error page.</comment>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>
