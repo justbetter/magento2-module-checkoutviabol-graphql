@@ -13,12 +13,22 @@
   "type": "magento2-module",
   "license": "MIT",
   "require": {
-    "php": ">=8.2",
+    "php": ">=8.3",
     "magento/framework": "*",
     "magento/module-sales": "*",
     "magento/module-sales-graph-ql": "*",
     "magento/module-store": "*",
     "bol/magento2-module-checkoutviabol": "^1.5"
+  },
+  "repositories": {
+    "bol": {
+      "type": "composer",
+      "url": "https://cvb.composer.bol.com/"
+    },
+    "magento": {
+      "type": "composer",
+      "url": "https://repo-magento-mirror.fooman.co.nz/"
+    }
   },
   "authors": [
     {
@@ -31,5 +41,27 @@
   "autoload": {
     "psr-4": { "JustBetter\\CheckoutViaBolGraphQl\\": "" },
     "files": [ "registration.php" ]
+  },
+  "config": {
+    "allow-plugins": {
+      "magento/composer-dependency-version-audit-plugin": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  },
+  "scripts": {
+    "analyse": "vendor/bin/phpstan analyse --memory-limit='1G'",
+    "phpcs": "vendor/bin/phpcs --colors --standard=vendor/magento/magento-coding-standard/Magento2 -s --exclude=Generic.Files.LineLength --report=full,summary,gitblame --extensions=php,phtml --ignore=./vendor ./",
+    "phpcbf": "vendor/bin/phpcbf --colors --standard=vendor/magento/magento-coding-standard/Magento2 --exclude=Generic.Files.LineLength --extensions=php,phtml --ignore=./vendor ./ || exit 0",
+    "rector": "vendor/bin/rector",
+    "codestyle": [
+      "@phpcbf",
+      "@phpcs"
+    ]
+  },
+  "require-dev": {
+    "bitexpert/phpstan-magento": "^0.42.0",
+    "magento/magento-coding-standard": ">=40",
+    "rector/rector": ">=1.2.5",
+    "justbetter/magento2-coding-standard": "^1.0,>=1.0.2"
   }
 }

@@ -12,6 +12,14 @@ use Magento\Store\Model\ScopeInterface;
 
 class UrlServicePlugin
 {
+    /**
+     * UrlServicePlugin constructor.
+     *
+     * @param RequestInterface     $request
+     * @param OrderFactory         $orderFactory
+     * @param Token                $token
+     * @param ScopeConfigInterface $scopeConfig
+     */
     public function __construct(
         private readonly RequestInterface $request,
         private readonly OrderFactory $orderFactory,
@@ -20,6 +28,14 @@ class UrlServicePlugin
     ) {
     }
 
+    /**
+     * Redirect to the configured success path, with a token for guest orders.
+     *
+     * @param UrlService $subject
+     * @param string     $result
+     *
+     * @return string
+     */
     public function afterGetCheckoutSuccessUrl(UrlService $subject, string $result): string
     {
         $order = $this->getOrder();
@@ -29,24 +45,46 @@ class UrlServicePlugin
         }
 
         $url = '/' . $path;
-        if (!$order || $order->getCustomerId()) {
+        if (!$order instanceof OrderInterface || $order->getCustomerId()) {
+            return $url;
+        }
+
+        $incrementId = $order->getIncrementId();
+        $billingAddress = $order->getBillingAddress();
+        if (!$incrementId || !$billingAddress) {
             return $url;
         }
 
         return $url . (str_contains($url, '?') ? '&' : '?') . http_build_query([
             'token' => $this->token->encrypt(
-                $order->getIncrementId(),
-                (string)$order->getBillingAddress()->getEmail(),
-                (string)$order->getBillingAddress()->getLastname(),
+                $incrementId,
+                (string)$billingAddress->getEmail(),
+                (string)$billingAddress->getLastname(),
             ),
         ]);
     }
 
+    /**
+     * Use the configured cancel path as the error path.
+     *
+     * @param UrlService $subject
+     * @param string     $result
+     *
+     * @return string
+     */
     public function afterGetCvbOrderErrorPath(UrlService $subject, string $result): string
     {
         return $this->getPath('cancel_path', $this->getOrder()) ?: $result;
     }
 
+    /**
+     * Redirect to the configured cancel path on errors.
+     *
+     * @param UrlService $subject
+     * @param string     $result
+     *
+     * @return string
+     */
     public function afterGetCvbOrderErrorUrl(UrlService $subject, string $result): string
     {
         $path = $this->getPath('cancel_path', $this->getOrder());
@@ -54,6 +92,14 @@ class UrlServicePlugin
         return $path ? '/' . $path : $result;
     }
 
+    /**
+     * Get a configured path for the order's store, without surrounding slashes.
+     *
+     * @param string              $field
+     * @param OrderInterface|null $order
+     *
+     * @return string
+     */
     private function getPath(string $field, ?OrderInterface $order): string
     {
         return trim((string)$this->scopeConfig->getValue(
@@ -63,6 +109,11 @@ class UrlServicePlugin
         ), '/');
     }
 
+    /**
+     * Get the order from the orderIncrementId request parameter.
+     *
+     * @return OrderInterface|null
+     */
     private function getOrder(): ?OrderInterface
     {
         $incrementId = (string)$this->request->getParam('orderIncrementId');

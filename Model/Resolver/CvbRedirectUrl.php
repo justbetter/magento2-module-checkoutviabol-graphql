@@ -16,6 +16,13 @@ use Magento\Sales\Model\Order;
 
 class CvbRedirectUrl implements ResolverInterface
 {
+    /**
+     * CvbRedirectUrl constructor.
+     *
+     * @param CvbService                  $cvbService
+     * @param CvbOrderRepositoryInterface $cvbOrderRepository
+     * @param CvbOrderInterfaceFactory    $cvbOrderFactory
+     */
     public function __construct(
         private readonly CvbService $cvbService,
         private readonly CvbOrderRepositoryInterface $cvbOrderRepository,
@@ -23,6 +30,17 @@ class CvbRedirectUrl implements ResolverInterface
     ) {
     }
 
+    /**
+     * Start and confirm a bol.checkout session for the order and return the redirect url.
+     *
+     * @param Field        $field
+     * @param mixed        $context
+     * @param ResolveInfo  $info
+     * @param mixed[]|null $value
+     * @param mixed[]|null $args
+     *
+     * @return string|null
+     */
     public function resolve(Field $field, $context, ResolveInfo $info, ?array $value = null, ?array $args = null): ?string
     {
         $order = $value['model'] ?? null;
@@ -50,6 +68,13 @@ class CvbRedirectUrl implements ResolverInterface
         }
     }
 
+    /**
+     * Check whether a bol.checkout session was already started for the order.
+     *
+     * @param OrderInterface $order
+     *
+     * @return bool
+     */
     private function hasCvbOrder(OrderInterface $order): bool
     {
         try {
