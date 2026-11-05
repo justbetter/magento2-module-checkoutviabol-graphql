@@ -60,6 +60,9 @@ class ApplyCvbSession implements ResolverInterface
         }
 
         $sessionId = (string)($args['session_id'] ?? '');
+        if ($sessionId === '' || $sessionId !== (string)$cart->getData('cvb_session_id')) {
+            throw new GraphQlInputException(__('This bol.checkout session does not belong to this cart.'));
+        }
 
         try {
             $cvbSession = $this->cvbService->getCvbSession($sessionId, (string)($args['nonce'] ?? ''), $storeId);
@@ -70,7 +73,6 @@ class ApplyCvbSession implements ResolverInterface
         // Use internal bol function to fill quote data
         (new ReflectionMethod($this->checkoutController, 'preFillQuote'))->invoke($this->checkoutController, $cvbSession, $cart);
 
-        $cart->setData('cvb_session_id', $sessionId);
         $cart->getShippingAddress()->setCollectShippingRates(true);
         $cart->setTotalsCollectedFlag(false)->collectTotals();
         $this->cartRepository->save($cart);

@@ -38,7 +38,7 @@ Configure where the customer is redirected to in `Stores > Configuration > Sales
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Success path | Path on your frontend after a successful payment, e.g. `checkout/success`. Guest orders get a `token` query parameter, which can be used with `guestOrderByToken`. |
 | Cancel path  | Path on your frontend when the payment is cancelled or fails. Use this to reactivate the cart.                                                                     |
-| Checkout return path | Path on your frontend to return to after filling in the details at bol, e.g. `bol-return/checkout`. Gets `cartId`, `sid`, `nonce` and `session-result` query parameters. Required for `startCvbCheckout`. |
+| Checkout return path | Path on your frontend to return to after filling in the details at bol, e.g. `checkout/bol-return`. Gets `sid`, `nonce` and `session-result` query parameters. Required for `startCvbCheckout`. |
 | Cart path    | Path on your frontend when the customer cancels at bol before placing the order, e.g. `cart`.                                                                     |
 
 These are paths, not urls, because bol only accepts paths. The customer always returns to the domain configured at bol. When left empty, the default bol.checkout urls are used.

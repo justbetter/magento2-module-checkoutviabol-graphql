@@ -5,7 +5,6 @@ namespace JustBetter\CheckoutViaBolGraphQl\Plugin;
 use Bol\CheckoutViaBol\Service\UrlService;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\RequestInterface;
-use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\OrderFactory;
 use Magento\SalesGraphQl\Model\Order\Token;
@@ -16,18 +15,16 @@ class UrlServicePlugin
     /**
      * UrlServicePlugin constructor.
      *
-     * @param RequestInterface                $request
-     * @param OrderFactory                    $orderFactory
-     * @param Token                           $token
-     * @param ScopeConfigInterface            $scopeConfig
-     * @param QuoteIdToMaskedQuoteIdInterface $quoteIdToMaskedQuoteId
+     * @param RequestInterface     $request
+     * @param OrderFactory         $orderFactory
+     * @param Token                $token
+     * @param ScopeConfigInterface $scopeConfig
      */
     public function __construct(
         private readonly RequestInterface $request,
         private readonly OrderFactory $orderFactory,
         private readonly Token $token,
         private readonly ScopeConfigInterface $scopeConfig,
-        private readonly QuoteIdToMaskedQuoteIdInterface $quoteIdToMaskedQuoteId,
     ) {
     }
 
@@ -96,24 +93,16 @@ class UrlServicePlugin
     }
 
     /**
-     * Use the configured checkout return path for fill-in sessions, with the masked cart id.
+     * Use the configured checkout return path for fill-in sessions.
      *
      * @param UrlService $subject
      * @param string     $result
-     * @param string     $cartId
      *
      * @return string
      */
-    public function afterGetCvbSessionCheckoutPath(UrlService $subject, string $result, string $cartId): string
+    public function afterGetCvbSessionCheckoutPath(UrlService $subject, string $result): string
     {
-        $path = $this->getPath('checkout_path', null);
-        if (!$path) {
-            return $result;
-        }
-
-        return $path . (str_contains($path, '?') ? '&' : '?') . http_build_query([
-            'cartId' => $this->quoteIdToMaskedQuoteId->execute((int)$cartId),
-        ]);
+        return $this->getPath('checkout_path', null) ?: $result;
     }
 
     /**
