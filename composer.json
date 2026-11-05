@@ -17,6 +17,7 @@
     "magento/framework": "*",
     "magento/module-sales": "*",
     "magento/module-sales-graph-ql": "*",
+    "magento/module-quote-graph-ql": "*",
     "magento/module-store": "*",
     "bol/magento2-module-checkoutviabol": "^1.5"
   },

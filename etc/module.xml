@@ -4,6 +4,7 @@
         <sequence>
             <module name="Bol_CheckoutViaBol"/>
             <module name="Magento_SalesGraphQl"/>
+            <module name="Magento_QuoteGraphQl"/>
         </sequence>
     </module>
 </config>
