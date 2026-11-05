@@ -72,7 +72,7 @@ mutation {
 
 Use `action_identifier` `1` when starting from the cart and `2` (default) when starting from the checkout.
 
-bol redirects back to the checkout return path. When `session-result` is `SUCCESS`, apply the session to fill the email, addresses and, when a bol payment option was chosen, the `cvb` payment method on the cart:
+bol redirects back to the checkout return path. When `session-result` is `SUCCESS`, apply the session to fill the email and addresses on the cart and select `cvb` as payment method. Only the session started with `startCvbCheckout` for this cart is accepted:
 
 ```graphql
 mutation {
