@@ -12,6 +12,14 @@
                     <label>Cancel path</label>
                     <comment>Path on your frontend to redirect to when the payment is cancelled or fails. Leave empty to use the default bol.checkout error page.</comment>
                 </field>
+                <field id="checkout_path" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" translate="label comment">
+                    <label>Checkout return path</label>
+                    <comment>Path on your frontend to return to after filling in the details at bol, e.g. checkout/bol-return. Gets sid and nonce query parameters to pass to applyCvbSession. Required for startCvbCheckout.</comment>
+                </field>
+                <field id="cart_path" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1" translate="label comment">
+                    <label>Cart path</label>
+                    <comment>Path on your frontend to return to when the customer cancels at bol before placing the order, e.g. cart. Leave empty to use the default Magento cart.</comment>
+                </field>
             </group>
         </section>
     </system>

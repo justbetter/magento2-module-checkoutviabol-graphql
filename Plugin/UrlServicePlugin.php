@@ -59,7 +59,7 @@ class UrlServicePlugin
             'token' => $this->token->encrypt(
                 $incrementId,
                 (string)$billingAddress->getEmail(),
-                (string)$billingAddress->getLastname(),
+                (string)$billingAddress->getPostcode(),
             ),
         ]);
     }
@@ -90,6 +90,32 @@ class UrlServicePlugin
         $path = $this->getPath('cancel_path', $this->getOrder());
 
         return $path ? '/' . $path : $result;
+    }
+
+    /**
+     * Use the configured checkout return path for fill-in sessions.
+     *
+     * @param UrlService $subject
+     * @param string     $result
+     *
+     * @return string
+     */
+    public function afterGetCvbSessionCheckoutPath(UrlService $subject, string $result): string
+    {
+        return $this->getPath('checkout_path', null) ?: $result;
+    }
+
+    /**
+     * Use the configured cart path.
+     *
+     * @param UrlService $subject
+     * @param string     $result
+     *
+     * @return string
+     */
+    public function afterGetCartPath(UrlService $subject, string $result): string
+    {
+        return $this->getPath('cart_path', null) ?: $result;
     }
 
     /**

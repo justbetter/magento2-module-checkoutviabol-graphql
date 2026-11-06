@@ -3,6 +3,7 @@
 namespace JustBetter\CheckoutViaBolGraphQl\Model\Resolver;
 
 use Bol\CheckoutViaBol\Api\CvbOrderRepositoryInterface;
+use Bol\CheckoutViaBol\Api\Data\CvbOrderInterface;
 use Bol\CheckoutViaBol\Api\Data\CvbOrderInterfaceFactory;
 use Bol\CheckoutViaBol\Exception\CvbApiException;
 use Bol\CheckoutViaBol\Model\Ui\ConfigProvider;
@@ -13,6 +14,8 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
+use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Model\Quote;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
@@ -31,6 +34,7 @@ class CvbRedirectUrl implements ResolverInterface
      * @param SearchCriteriaBuilder       $searchCriteriaBuilder
      * @param OrderManagementInterface    $orderManagement
      * @param LoggerInterface             $logger
+     * @param CartRepositoryInterface     $cartRepository
      */
     public function __construct(
         private readonly CvbService $cvbService,
@@ -40,6 +44,7 @@ class CvbRedirectUrl implements ResolverInterface
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
         private readonly OrderManagementInterface $orderManagement,
         private readonly LoggerInterface $logger,
+        private readonly CartRepositoryInterface $cartRepository,
     ) {
     }
 
@@ -72,19 +77,44 @@ class CvbRedirectUrl implements ResolverInterface
             $this->logger->error('Could not cancel previous bol.checkout orders', ['exception' => $e]);
         }
 
+        $cvbOrder = $this->cvbOrderFactory->create();
+        $cvbOrder->setOrderId((int)$order->getEntityId());
+
+        $cvbSessionId = $this->getFillInSessionId($order);
+        if ($cvbSessionId !== '') {
+            try {
+                return $this->confirmSession($cvbOrder, $cvbSessionId, true, $order);
+            } catch (CvbApiException $e) {
+                $this->logger->warning('Could not confirm the bol.checkout fill-in session, starting a new session', ['exception' => $e]);
+            }
+        }
+
         try {
-            $cvbSessionId = $this->cvbService->createCvbSessionFromOrder($order)['id'];
-
-            $cvbOrder = $this->cvbOrderFactory->create();
-            $cvbOrder->setOrderId((int)$order->getEntityId());
-            $cvbOrder->setCvbSessionId($cvbSessionId);
-            $cvbOrder->setIsFillInSession(false);
-            $this->cvbOrderRepository->save($cvbOrder);
-
-            return $this->cvbService->confirmSession($cvbSessionId, $order);
+            return $this->confirmSession($cvbOrder, $this->cvbService->createCvbSessionFromOrder($order)['id'], false, $order);
         } catch (CvbApiException) {
             return null;
         }
+    }
+
+    /**
+     * Save the bol.checkout session on the cvb order record and confirm it.
+     *
+     * @param CvbOrderInterface $cvbOrder
+     * @param string            $cvbSessionId
+     * @param bool              $isFillInSession
+     * @param OrderInterface    $order
+     *
+     * @return string
+     *
+     * @throws CvbApiException
+     */
+    private function confirmSession(CvbOrderInterface $cvbOrder, string $cvbSessionId, bool $isFillInSession, OrderInterface $order): string
+    {
+        $cvbOrder->setCvbSessionId($cvbSessionId);
+        $cvbOrder->setIsFillInSession($isFillInSession);
+        $this->cvbOrderRepository->save($cvbOrder);
+
+        return $this->cvbService->confirmSession($cvbSessionId, $order);
     }
 
     /**
@@ -107,6 +137,33 @@ class CvbRedirectUrl implements ResolverInterface
                 $this->orderManagement->cancel((int)$previousOrder->getEntityId());
             }
         }
+    }
+
+    /**
+     * Get the fill-in session id saved on the order's quote, unless it was already confirmed for an earlier order.
+     *
+     * @param OrderInterface $order
+     *
+     * @return string
+     */
+    private function getFillInSessionId(OrderInterface $order): string
+    {
+        try {
+            $quote = $this->cartRepository->get((int)$order->getQuoteId());
+        } catch (NoSuchEntityException) {
+            return '';
+        }
+
+        $cvbSessionId = $quote instanceof Quote ? (string)$quote->getData('cvb_session_id') : '';
+        if ($cvbSessionId === '') {
+            return '';
+        }
+
+        $searchCriteria = $this->searchCriteriaBuilder
+            ->addFilter('cvb_session_id', $cvbSessionId)
+            ->create();
+
+        return $this->cvbOrderRepository->getList($searchCriteria)->getTotalCount() ? '' : $cvbSessionId;
     }
 
     /**
