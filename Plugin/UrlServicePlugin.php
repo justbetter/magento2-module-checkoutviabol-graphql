@@ -59,7 +59,7 @@ class UrlServicePlugin
             'token' => $this->token->encrypt(
                 $incrementId,
                 (string)$billingAddress->getEmail(),
-                (string)$billingAddress->getPostcode(),
+                (string)$billingAddress->getLastname(),
             ),
         ]);
     }
