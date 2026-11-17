@@ -93,6 +93,32 @@ class UrlServicePlugin
     }
 
     /**
+     * Use the configured checkout return path for fill-in sessions.
+     *
+     * @param UrlService $subject
+     * @param string     $result
+     *
+     * @return string
+     */
+    public function afterGetCvbSessionCheckoutPath(UrlService $subject, string $result): string
+    {
+        return $this->getPath('checkout_path', null) ?: $result;
+    }
+
+    /**
+     * Use the configured cart path.
+     *
+     * @param UrlService $subject
+     * @param string     $result
+     *
+     * @return string
+     */
+    public function afterGetCartPath(UrlService $subject, string $result): string
+    {
+        return $this->getPath('cart_path', null) ?: $result;
+    }
+
+    /**
      * Get a configured path for the order's store, without surrounding slashes.
      *
      * @param string              $field

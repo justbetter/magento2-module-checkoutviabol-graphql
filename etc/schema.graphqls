@@ -1,3 +1,8 @@
+type Mutation {
+    startCvbCheckout(cart_id: String!, action_identifier: Int = 2 @doc(description: "Where the checkout was started, 1 for the cart and 2 for the checkout.")): String @resolver(class: "JustBetter\\CheckoutViaBolGraphQl\\Model\\Resolver\\StartCvbCheckout") @doc(description: "Start a bol.checkout fill-in session for a guest cart and return the bol url to redirect to.")
+    applyCvbSession(cart_id: String!, session_id: String!, nonce: String!): Cart @resolver(class: "JustBetter\\CheckoutViaBolGraphQl\\Model\\Resolver\\ApplyCvbSession") @doc(description: "Fill the cart with the details chosen in a bol.checkout fill-in session and select bol.checkout as payment method, after returning from bol.")
+}
+
 type CustomerOrder {
     cvb_redirect_url: String @resolver(class: "JustBetter\\CheckoutViaBolGraphQl\\Model\\Resolver\\CvbRedirectUrl") @doc(description: "The bol.checkout url to redirect to for payment, only filled for pending bol.checkout orders.")
 }
